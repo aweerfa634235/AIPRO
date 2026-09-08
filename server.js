@@ -85,6 +85,7 @@ RULES:
     maxTokens: 4096,
     temperature: 0.85,
   },
+  ultra: {
     id: 'openai/gpt-oss-120b',
     name: 'AIPRO Ultra',
     cost: 10,
