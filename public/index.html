@@ -320,8 +320,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   opacity:0;transition:opacity .8s ease;
 }
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.cv-admin{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.25)}
+.pulse-admin{background:#ffd700}
+.avatar-ai-admin{background:rgba(255,215,0,.15);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
+.tag-admin{background:rgba(255,215,0,.1);color:#ffd700}
+.ver-card.active-admin{background:rgba(255,215,0,.08);border-color:rgba(255,215,0,.35)}
 @media(max-width:700px){#sidebar{display:none}.bubble{max-width:90%}}
 </style>
 </head>
@@ -412,6 +415,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           <div class="ver-desc">הכי חזק ומעמיק</div>
         </div>
         <div class="ver-cost cost-ultra">10 💎</div>
+      </div>
+      <div class="ver-card" id="card-admin" onclick="setVersion('admin')" style="display:none">
+        <div class="ver-dot" style="background:#ffd700;box-shadow:0 0 8px #ffd700"></div>
+        <div class="ver-info">
+          <div class="ver-name" style="color:#ffd700">AIPRO Admin</div>
+          <div class="ver-desc">גישה מלאה — מנהל בלבד</div>
+        </div>
+        <div class="ver-cost" style="background:rgba(255,215,0,.15);color:#ffd700">👑 FREE</div>
       </div>
     </div>
   </div>
@@ -591,11 +602,13 @@ let chats = JSON.parse(localStorage.getItem('aipro_chats')||'[]');
 let activeChatId = null;
 let isLoading = false;
 
-const COSTS = { mini:1, pro:3, ultra:10 };
+const ADMIN_ID = '1309142783646498879';
+const COSTS = { mini:1, pro:3, ultra:10, admin:0 };
 const versionMeta = {
   mini:  {label:'AIPRO Mini', cvClass:'cv-mini', pulseClass:'pulse-mini', avatarClass:'avatar-ai-mini', tagClass:'tag-mini', icon:'⚡'},
   pro:   {label:'AIPRO Pro',  cvClass:'cv-pro',  pulseClass:'pulse-pro',  avatarClass:'avatar-ai-pro',  tagClass:'tag-pro',  icon:'✦'},
   ultra: {label:'AIPRO Ultra',cvClass:'cv-ultra',pulseClass:'pulse-ultra',avatarClass:'avatar-ai-ultra',tagClass:'tag-ultra',icon:'🔥'},
+  admin: {label:'AIPRO Admin',cvClass:'cv-admin',pulseClass:'pulse-admin',avatarClass:'avatar-ai-admin',tagClass:'tag-admin',icon:'👑'},
 };
 
 // ══ AUTH ══════════════════════════════════════════
@@ -621,6 +634,10 @@ function showApp() {
   document.getElementById('user-name').textContent = currentUser.username;
   document.getElementById('user-avatar').src = currentUser.avatar;
   updateCreditsDisplay(currentUser.credits);
+  // Show admin card only for admin
+  if (currentUser.discord_id === ADMIN_ID) {
+    document.getElementById('card-admin').style.display = 'flex';
+  }
   renderHistory();
   if (chats.length > 0) loadChat(chats[0].id);
   else setVersion('mini');
@@ -642,8 +659,9 @@ function updateCreditsDisplay(credits) {
 // ══ VERSION ═══════════════════════════════════════
 function setVersion(v) {
   currentVersion = v;
-  ['mini','pro','ultra'].forEach(k=>{
+  ['mini','pro','ultra','admin'].forEach(k=>{
     const c = document.getElementById('card-'+k);
+    if(!c) return;
     c.className='ver-card'; if(k===v) c.classList.add('active-'+k);
   });
   const meta = versionMeta[v];
@@ -778,6 +796,10 @@ async function sendMessage(){
 
     if(res.status===402){
       showToast('אין מספיק קרדיטים לגרסה זו!'); 
+      return;
+    }
+    if(res.status===403){
+      showToast('גרסת Admin זמינה רק למנהל המערכת 👑');
       return;
     }
     if(data.reply){
